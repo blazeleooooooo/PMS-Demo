@@ -106,13 +106,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
+import { lazyProxy } from "@/lib/supabase/public-env";
 import { cn } from "@/lib/utils";
 
 interface BWFProjectDetailProps {
   projectId: string;
 }
 
-const supabase = createClient();
+const supabase = lazyProxy(() => createClient());
 
 
 function paymentBadge(status: string | null) {

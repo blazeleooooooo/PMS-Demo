@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { lazyProxy, resolvePublicSupabaseEnv } from "@/lib/supabase/public-env";
 import FKAuditPage from "@/app/admin/fk-audit/page";
 
 // ─── DANGER CONFIRMATION DIALOG ───
@@ -154,10 +155,10 @@ function DangerConfirmDialog({
   );
 }
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = lazyProxy(() => {
+  const { url, key } = resolvePublicSupabaseEnv();
+  return createClient(url, key);
+});
 
 const GROUPS = [
   {

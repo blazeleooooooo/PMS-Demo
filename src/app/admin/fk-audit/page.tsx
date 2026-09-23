@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { lazyProxy, resolvePublicSupabaseEnv } from "@/lib/supabase/public-env";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = lazyProxy(() => {
+  const { url, key } = resolvePublicSupabaseEnv();
+  return createClient(url, key);
+});
 
 // ─── Known FK relationship map ───
 // Maps table.column → target table (based on Bubble Swagger analysis)
