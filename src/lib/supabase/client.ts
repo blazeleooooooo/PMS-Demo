@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { resolvePublicSupabaseEnv } from "@/lib/supabase/public-env";
 
 let client: ReturnType<typeof createBrowserClient> | null = null;
 
@@ -13,9 +14,10 @@ let client: ReturnType<typeof createBrowserClient> | null = null;
  */
 export function createClient() {
   if (client) return client;
+  const { url, key } = resolvePublicSupabaseEnv();
   client = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    key,
     {
       auth: {
         lock: async (_name, _acquireTimeout, fn) => fn(),

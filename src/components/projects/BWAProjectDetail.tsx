@@ -155,6 +155,7 @@ import { IncomeExpiryReasonField } from "@/components/projects/IncomeExpiryReaso
 import { IncomePaymentStatusField } from "@/components/projects/IncomePaymentStatusField";
 import { ExpensePaymentStatusField } from "@/components/projects/ExpensePaymentStatusField";
 import { createClient } from "@/lib/supabase/client";
+import { lazyProxy } from "@/lib/supabase/public-env";
 import { notifyProjectBvCreated } from "@/lib/project-bv-notify";
 import { buildStorageObjectKeyWithSanitizedName } from "@/lib/storage-utils";
 import { cn } from "@/lib/utils";
@@ -239,7 +240,7 @@ import { useFinancialFormat } from "@/hooks/use-financial-format";
 import { isBwaMiniProjectSize } from "@/lib/bwa-project-size";
 import { isBoxWorkingFolder } from "@/lib/box-path";
 
-const supabase = createClient();
+const supabase = lazyProxy(() => createClient());
 
 interface BWAProjectDetailProps {
   projectId: string;

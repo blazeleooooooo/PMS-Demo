@@ -117,6 +117,7 @@ import { IncomeExpiryReasonField } from "@/components/projects/IncomeExpiryReaso
 import { IncomePaymentStatusField } from "@/components/projects/IncomePaymentStatusField";
 import { ExpensePaymentStatusField } from "@/components/projects/ExpensePaymentStatusField";
 import { createClient } from "@/lib/supabase/client";
+import { lazyProxy } from "@/lib/supabase/public-env";
 import { buildStorageObjectKeyWithSanitizedName } from "@/lib/storage-utils";
 import { cn } from "@/lib/utils";
 import { usePermission } from "@/hooks/use-permission";
@@ -159,7 +160,7 @@ import {
   paidExceedsInstallment,
 } from "@/lib/expense-outstanding-split";
 
-const supabase = createClient();
+const supabase = lazyProxy(() => createClient());
 
 export type ProjectFinanceView = "overview-income" | "overview-expense" | "income" | "expense";
 export type ProjectEntityType = "bwa_project" | "bwf_project";

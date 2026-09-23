@@ -1,9 +1,29 @@
 import { NextResponse } from "next/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import {
+  createClient as createAdminClient,
+  type SupabaseClient,
+} from "@supabase/supabase-js";
 import { assertStaffActiveForLogin } from "@/lib/auth/assert-staff-active";
 import { getSafeReturnTo } from "@/lib/auth/safe-return-to";
 import { createClient } from "@/lib/supabase/server";
 import { getServerSiteUrl } from "@/lib/get-site-url";
+
+let supabaseAdminClient: SupabaseClient | null = null;
+
+function getSupabaseAdmin(): SupabaseClient {
+  if (supabaseAdminClient) return supabaseAdminClient;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error(
+      "Missing Supabase env: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_KEY are required"
+    );
+  }
+
+  supabaseAdminClient = createAdminClient(supabaseUrl, supabaseServiceKey);
+  return supabaseAdminClient;
+}
 
 function parseReturnToCookie(request: Request): string | null {
   const cookieHeader = request.headers.get("cookie");
@@ -16,11 +36,6 @@ function parseReturnToCookie(request: Request): string | null {
     return null;
   }
 }
-
-const supabaseAdmin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-);
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -43,6 +58,7 @@ export async function GET(request: Request) {
   }
 
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const supabase = await createClient();
     const { data: sessionData, error } =
       await supabase.auth.exchangeCodeForSession(code);

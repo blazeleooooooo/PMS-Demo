@@ -1,16 +1,32 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { assertStaffActiveForLogin } from "@/lib/auth/assert-staff-active";
 
-// Server-side admin client — bypasses RLS
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-);
+let supabaseAdminClient: SupabaseClient | null = null;
+
+/**
+ * Service-role client. Created on first request so `next build` can load this
+ * module when NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_KEY are unset.
+ */
+function getSupabaseAdmin(): SupabaseClient {
+  if (supabaseAdminClient) return supabaseAdminClient;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error(
+      "Missing Supabase env: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_KEY are required"
+    );
+  }
+
+  supabaseAdminClient = createClient(supabaseUrl, supabaseServiceKey);
+  return supabaseAdminClient;
+}
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const supabaseAdmin = getSupabaseAdmin();
     const { action, email, password } = body;
 
     switch (action) {

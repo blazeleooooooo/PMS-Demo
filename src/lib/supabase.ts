@@ -1,10 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { lazyProxy, resolvePublicSupabaseEnv } from "@/lib/supabase/public-env";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-// Public client (anon key) — for read operations / client-side
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Public client (anon key) — for read operations / client-side.
+// Lazy so importing this module during `next build` does not require env vars.
+export const supabase: SupabaseClient = lazyProxy(() => {
+  const { url, key } = resolvePublicSupabaseEnv();
+  return createClient(url, key);
+});
 
 // Re-export the full auto-generated types for use elsewhere
 export type { Database } from "@/types/supabase";

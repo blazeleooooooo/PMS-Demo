@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSafeReturnTo } from "@/lib/auth/safe-return-to";
 import { resolvePermissionModule } from "@/lib/route-modules";
+import { resolvePublicSupabaseEnv } from "@/lib/supabase/public-env";
 
 // ─── SESSION EXPIRY CONFIG ───────────────────────────────────
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
@@ -11,29 +12,6 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
 
   // ─── OPTIMIZED: Cookie-based auth check ───────────────────
   // Instead of making a network call to getUser() (which can timeout and add latency),
@@ -88,14 +66,39 @@ export async function updateSession(request: NextRequest) {
   const isAccessDeniedPage = pathname === "/access-denied";
   const isPendingApprovalPage = pathname === "/pending-approval";
 
-  // Auth callback must refresh the Supabase session cookie (PKCE code exchange).
-  if (isCallbackRoute) {
-    await supabase.auth.getUser();
+  // API routes such as /api/auth/login validate their own credentials.
+  // Creating the anon client here throws before that handler can run when
+  // NEXT_PUBLIC_SUPABASE_URL is unset.
+  if (
+    !isCallbackRoute &&
+    (isApiRoute || isStaticAsset || isTempoRoute || isPortalRoute || isAccessDeniedPage)
+  ) {
     return supabaseResponse;
   }
 
-  // Skip protection for API routes, static assets, tempobook, portal, access-denied
-  if (isApiRoute || isStaticAsset || isTempoRoute || isPortalRoute || isAccessDeniedPage) {
+  const { url, key } = resolvePublicSupabaseEnv();
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value)
+        );
+        supabaseResponse = NextResponse.next({
+          request,
+        });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
+
+  // Auth callback must refresh the Supabase session cookie (PKCE code exchange).
+  if (isCallbackRoute) {
+    await supabase.auth.getUser();
     return supabaseResponse;
   }
 
