@@ -1,4 +1,6 @@
 {
+  "name": "acme-project-os",
+  "description": "Synthetic project-management demo for a design-and-build workspace. Next.js, React, Supabase, and Vercel.",
   "private": true,
   "engines": {
     "node": "24.x"
