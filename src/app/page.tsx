@@ -76,6 +76,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { usePermission } from "@/hooks/use-permission";
 import TopNav from "@/components/dashboard/TopNav";
+import { DemoWelcomeBanner } from "@/components/dashboard/demo-welcome-banner";
 import { navigationGroups, type NavItem } from "@/lib/mock-data";
 import { isNavItemPermissionBlocked } from "@/lib/route-modules";
 import { fetchDashboardSentences } from "@/lib/data-service";
@@ -328,11 +329,14 @@ export default function HomePage() {
         </header>
 
         <div className="max-w-5xl mx-auto px-6 py-6 space-y-5">
+          <DemoWelcomeBanner />
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <p className="text-lg font-semibold text-gray-900">
               {greetingText}，{authLoading ? "..." : displayName || "用戶"} 👋
             </p>
-            <p className="text-sm text-gray-500 mt-1">歡迎使用 BW PMS 系統</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Acme Project OS 示範環境，畫面上的客戶與金額均為虛構
+            </p>
 
             {(quoteLoading || quote) && (
               <button

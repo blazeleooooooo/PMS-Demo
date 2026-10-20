@@ -5,6 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getSafeReturnTo } from "@/lib/auth/safe-return-to";
 import {
+  DEMO_LOGIN_EMAIL,
+  DEMO_LOGIN_PASSWORD,
+  shouldShowDemoLoginHint,
+} from "@/lib/auth/demo-login-hint";
+import { DemoLoginHint } from "@/components/auth/demo-login-hint";
+import {
   Lock,
   Mail,
   Eye,
@@ -33,7 +39,29 @@ export default function LoginPage() {
   const [userType, setUserType] = useState<string | null>(null);
   const [resendCountdown, setResendCountdown] = useState(0);
   const [hasAttemptedOtp, setHasAttemptedOtp] = useState(false);
+  const [showDemoHint, setShowDemoHint] = useState(() =>
+    shouldShowDemoLoginHint({
+      siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+    }),
+  );
   const otpInputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    setShowDemoHint(
+      shouldShowDemoLoginHint({
+        hostname: window.location.hostname,
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+      }),
+    );
+  }, []);
+
+  const fillDemoAccount = (goToPassword: boolean) => {
+    setEmail(DEMO_LOGIN_EMAIL);
+    setPassword(DEMO_LOGIN_PASSWORD);
+    setShowPassword(true);
+    setError(null);
+    if (goToPassword) setStep("password_fallback");
+  };
 
   // Check for callback error
   useEffect(() => {
@@ -446,6 +474,13 @@ export default function LoginPage() {
                 </p>
               </div>
 
+              {showDemoHint && (
+                <DemoLoginHint
+                  mode="email"
+                  onFill={() => fillDemoAccount(true)}
+                />
+              )}
+
               {/* Email Form */}
               <form onSubmit={handleSendOtp} className="space-y-4">
                 <div>
@@ -660,6 +695,13 @@ export default function LoginPage() {
                   使用密碼作為替代登入方式
                 </p>
               </div>
+
+              {showDemoHint && (
+                <DemoLoginHint
+                  mode="password"
+                  onFill={() => fillDemoAccount(false)}
+                />
+              )}
 
               <form onSubmit={handlePasswordLogin} className="space-y-4">
                 <div>

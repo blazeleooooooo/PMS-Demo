@@ -335,13 +335,19 @@ export default function TopNav({
           <div className="relative z-10 w-[120px] overflow-hidden flex items-center justify-center h-[40px]">
             <Image
               src="/images/pms-logo-white.png"
-              alt="PMS 3.0"
+              alt="Acme Project OS"
               width={200}
               height={200}
               className="object-cover scale-[2.2] w-[20px] h-[20px]"
               priority
             />
           </div>
+        </div>
+
+        <div className="hidden sm:flex items-center shrink-0 pr-1">
+          <span className="rounded-full border border-amber-300/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-100">
+            DEMO
+          </span>
         </div>
 
         {/* Main nav groups — horizontal (scrolls on tablet/phone) */}
